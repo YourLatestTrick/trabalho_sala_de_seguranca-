@@ -127,6 +127,47 @@ def search_user_by_rfid(rfid):
     connection.close()
     return user
 
+def update_user_data(id, novo_nome=None, novo_cargo=None, novo_status=None, novo_rfid=None):
+  try:
+    connection = sqlite3.connect("acess_control.db")
+    cursor = connection.cursor()
+
+    campos = []
+    valores = []
+
+    if novo_nome is not None:
+      campos.append("nome = ?")
+      valores.append(novo_nome)
+
+    if novo_cargo is not None:
+      campos.append("cargo = ?")
+      valores.append(novo_cargo)
+
+    if novo_status is not None:
+      campos.append("status = ?")
+      valores.append(novo_status)
+
+    if novo_rfid is not None:
+      campos.append("rfid = ?")
+      valores.append(novo_rfid)
+
+    if not campos:
+      print("Nenhum dado foi fornecido para atualização.")
+      connection.close()
+      return False
+
+    valores.append(id)
+    sql = f"UPDATE pessoas SET {', '.join(campos)} WHERE id = ?"
+
+    cursor.execute(sql, tuple(valores))
+    connection.commit()
+    connection.close()
+    return True
+
+  except Exception as e:
+    print(f"Erro ao atualizar colaborador: {e}")
+    return False
+
 def delete_user_by_rfid(rfid):
     connection = sqlite3.connect("acess_control.db")
     cursor = connection.cursor()
