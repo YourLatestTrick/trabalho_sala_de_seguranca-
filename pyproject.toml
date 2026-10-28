@@ -1,5 +1,5 @@
 [project]
-name = "trabalho-sistema-raspi"
+name = "trabalho-sistema"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -10,7 +10,7 @@ requires-python = ">=3.14"
 dependencies = []
 
 [project.scripts]
-trabalho-sistema-raspi = "trabalho_sistema_raspi:main"
+trabalho-sistema = "trabalho_sistema:main"
 
 [build-system]
 requires = ["uv_build>=0.12.7,<0.13.0"]

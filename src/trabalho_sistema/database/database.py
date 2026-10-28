@@ -82,5 +82,38 @@ def list_all_users():
     connection.close()
     return users
 
+def search_user_by_rfid(rfid):
+    connection = sqlite3.connect("acess_control.db")
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        SELECT nome, cargo, acesso_sala, status 
+        FROM pessoas 
+        WHERE rfid = ?
+    """,
+        (rfid,),
+    )
+
+    user = cursor.fetchone()
+    connection.close()
+    return user
+
+def delete_user_by_rfid(rfid):
+    connection = sqlite3.connect("acess_control.db")
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """
+        DELETE FROM pessoas
+        WHERE rfid = ?
+    """,
+        (rfid,),
+    )
+
+    connection.commit()
+    connection.close()
+    print(f"Pessoa com RFID {rfid} foi removida do sistema.")
+
 if __name__ == "__main__":
     initialize_database()
