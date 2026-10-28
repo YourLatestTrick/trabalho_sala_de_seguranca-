@@ -70,6 +70,34 @@ def initialize_database():
 
     connection.close()
 
+import sqlite3
+import uuid
+
+
+def add_user(nome, rfid, cargo, acesso_sala, status="ativo"):
+  try:
+    connection = sqlite3.connect("acess_control.db")
+    cursor = connection.cursor()
+
+    new_id = str(uuid.uuid4())
+
+    cursor.execute(
+        """
+            INSERT INTO pessoas (id, nome, rfid, cargo, acesso_sala, status)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        (new_id, nome, rfid, cargo, acesso_sala, status),
+    )
+
+    connection.commit()
+    connection.close()
+    print(f"Sucesso: '{nome}' foi cadastrado(a) com o RFID {rfid}.")
+    return True
+
+  except sqlite3.IntegrityError:
+    print(f"Erro: O cartão RFID '{rfid}' já pertence a outra pessoa cadastrada.")
+    return False
+
 def list_all_users():
     connection = sqlite3.connect("acess_control.db")
     cursor = connection.cursor()
