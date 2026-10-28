@@ -69,3 +69,18 @@ def initialize_database():
         print("Banco de dados já foi inicializado")
 
     connection.close()
+
+def list_all_users():
+    connection = sqlite3.connect("acess_control.db")
+    cursor = connection.cursor()
+
+    cursor.execute(
+        "SELECT id, nome, rfid, cargo, acesso_sala, status FROM pessoas"
+    )
+    users = cursor.fetchall()
+
+    connection.close()
+    return users
+
+if __name__ == "__main__":
+    initialize_database()
