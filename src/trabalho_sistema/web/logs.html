@@ -1,0 +1,386 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Central de Logs - Sistema de Segurança</title>
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #7b9ebd;
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 12px;
+    color: #222;
+}
+
+.topbar {
+    background: linear-gradient(to bottom, #5c91c2, #245681);
+    color: white;
+    padding: 14px 20px;
+    border-bottom: 2px solid #163b5c;
+}
+
+.topbar h1 {
+    margin: 0;
+    font-size: 21px;
+    font-weight: normal;
+}
+
+.topbar p {
+    margin: 5px 0 0;
+}
+
+.menubar {
+    background: #ece9d8;
+    padding: 8px 15px;
+    border-bottom: 1px solid #8b8b8b;
+}
+
+.menubar a {
+    color: #003399;
+    text-decoration: none;
+    margin-right: 18px;
+}
+
+.menubar a:hover {
+    text-decoration: underline;
+}
+
+.container {
+    max-width: 1250px;
+    margin: 20px auto;
+    padding: 0 15px;
+}
+
+.panel {
+    background: #f7f6ef;
+    border: 1px solid #777;
+    box-shadow: 2px 2px 3px #536d83;
+    margin-bottom: 18px;
+}
+
+.panel-title {
+    background: linear-gradient(to bottom, #d9e8f5, #a9c8e3);
+    border-bottom: 1px solid #8a9eaf;
+    padding: 9px 12px;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.panel-body {
+    padding: 15px;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+button {
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 12px;
+    padding: 6px 13px;
+    color: #222;
+    background: linear-gradient(to bottom, #fff, #e1e1e1);
+    border: 1px solid #777;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #dceafa;
+}
+
+input, select {
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 12px;
+    padding: 6px;
+    border: 1px solid #888;
+    background: white;
+}
+
+input {
+    min-width: 230px;
+}
+
+.status {
+    padding: 8px;
+    background: #e8f0f7;
+    border: 1px solid #b3c7d8;
+    margin-bottom: 12px;
+}
+
+.table-container {
+    overflow-x: auto;
+    border: 1px solid #999;
+    background: white;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+th {
+    background: #d9e4ef;
+    border: 1px solid #a3a3a3;
+    padding: 9px 8px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+td {
+    border: 1px solid #c4c4c4;
+    padding: 8px;
+}
+
+tbody tr:nth-child(even) {
+    background: #f0f4f8;
+}
+
+tbody tr:hover {
+    background: #e1edfa;
+}
+
+.empty {
+    text-align: center;
+    padding: 25px;
+    color: #666;
+}
+
+.footer {
+    text-align: center;
+    padding: 12px;
+    color: #333;
+    font-size: 11px;
+}
+
+@media (max-width: 600px) {
+    .container {
+        margin-top: 12px;
+    }
+
+    .toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    input {
+        width: 100%;
+        min-width: 0;
+    }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+    <h1>Central de Logs</h1>
+    <p>Sistema de Segurança e Controle de Acesso</p>
+</header>
+
+<nav class="menubar">
+    <a href="index.html">Página principal</a>
+    <a href="logs.html">Registros de acesso</a>
+</nav>
+
+<main class="container">
+    <section class="panel">
+        <div class="panel-title">Consulta de registros</div>
+        <div class="panel-body">
+            <div class="toolbar">
+                <input id="filtro" type="text" placeholder="Pesquisar nos registros..." oninput="renderizarLogs()">
+                <select id="filtroResultado" onchange="renderizarLogs()">
+                    <option value="">Todos os resultados</option>
+                    <option value="sucesso">Sucesso</option>
+                    <option value="negado">Negado</option>
+                    <option value="erro">Erro</option>
+                </select>
+                <button onclick="carregarLogs()">Atualizar registros</button>
+                <button onclick="exportarCSV()">Exportar CSV</button>
+            </div>
+
+            <div class="status" id="status">Carregando registros...</div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data e hora</th>
+                            <th>Nome</th>
+                            <th>Tag RFID</th>
+                            <th>Evento</th>
+                            <th>Resultado</th>
+                            <th>Mensagem</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaLogs">
+                        <tr>
+                            <td colspan="6" class="empty">Carregando registros...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <div class="footer">
+        Sistema de Segurança © 2026
+    </div>
+</main>
+
+<script>
+let logs = [];
+
+function valor(registro, nomes) {
+    for (const nome of nomes) {
+        if (registro[nome] !== undefined && registro[nome] !== null) {
+            return registro[nome];
+        }
+    }
+    return "";
+}
+
+function escapar(texto) {
+    return String(texto ?? "").replace(/[&<>"']/g, caractere => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[caractere]);
+}
+
+async function carregarLogs() {
+    const status = document.getElementById("status");
+    status.textContent = "Carregando registros...";
+
+    try {
+        const resposta = await fetch("/api/logs", {
+            cache: "no-store"
+        });
+
+        if (!resposta.ok) {
+            throw new Error("Não foi possível consultar os registros.");
+        }
+
+        const dados = await resposta.json();
+        logs = Array.isArray(dados) ? dados : (dados.logs || dados.registros || []);
+
+        renderizarLogs();
+
+        status.textContent = `${logs.length} registro(s) carregado(s). Última atualização: ${new Date().toLocaleTimeString("pt-BR")}`;
+    } catch (erro) {
+        status.textContent = "Não foi possível carregar os registros. Verifique se o servidor está ativo e se a rota /api/logs está disponível.";
+        document.getElementById("tabelaLogs").innerHTML =
+            '<tr><td colspan="6" class="empty">Erro ao carregar os registros.</td></tr>';
+    }
+}
+
+function renderizarLogs() {
+    const filtro = document.getElementById("filtro").value.toLowerCase().trim();
+    const resultadoFiltro = document.getElementById("filtroResultado").value;
+    const tabela = document.getElementById("tabelaLogs");
+
+    const filtrados = logs.filter(registro => {
+        const data = valor(registro, ["data_hora", "dataHora", "data", "timestamp"]);
+        const nome = valor(registro, ["nome", "name"]);
+        const tag = valor(registro, ["tag_rfid", "tag_uid", "rfid", "tag"]);
+        const evento = valor(registro, ["evento", "event"]);
+        const resultado = valor(registro, ["resultado", "status"]);
+        const mensagem = valor(registro, ["mensagem", "message"]);
+
+        const texto = [data, nome, tag, evento, resultado, mensagem].join(" ").toLowerCase();
+        const resultadoNormalizado = String(resultado).toLowerCase();
+
+        const correspondeResultado =
+            !resultadoFiltro ||
+            resultadoNormalizado.includes(resultadoFiltro) ||
+            (resultadoFiltro === "sucesso" && resultadoNormalizado.includes("permitido")) ||
+            (resultadoFiltro === "negado" && resultadoNormalizado.includes("negado"));
+
+        return texto.includes(filtro) && correspondeResultado;
+    });
+
+    if (!filtrados.length) {
+        tabela.innerHTML = '<tr><td colspan="6" class="empty">Nenhum registro encontrado.</td></tr>';
+        return;
+    }
+
+    tabela.innerHTML = filtrados.map(registro => `
+        <tr>
+            <td>${escapar(valor(registro, ["data_hora", "dataHora", "data", "timestamp"]))}</td>
+            <td>${escapar(valor(registro, ["nome", "name"]))}</td>
+            <td>${escapar(valor(registro, ["tag_rfid", "tag_uid", "rfid", "tag"]))}</td>
+            <td>${escapar(valor(registro, ["evento", "event"]))}</td>
+            <td>${escapar(valor(registro, ["resultado", "status"]))}</td>
+            <td>${escapar(valor(registro, ["mensagem", "message"]))}</td>
+        </tr>
+    `).join("");
+}
+
+function exportarCSV() {
+    const filtro = document.getElementById("filtro").value.toLowerCase().trim();
+    const resultadoFiltro = document.getElementById("filtroResultado").value;
+
+    const filtrados = logs.filter(registro => {
+        const campos = [
+            valor(registro, ["data_hora", "dataHora", "data", "timestamp"]),
+            valor(registro, ["nome", "name"]),
+            valor(registro, ["tag_rfid", "tag_uid", "rfid", "tag"]),
+            valor(registro, ["evento", "event"]),
+            valor(registro, ["resultado", "status"]),
+            valor(registro, ["mensagem", "message"])
+        ];
+
+        const resultado = String(campos[4]).toLowerCase();
+        const correspondeTexto = campos.join(" ").toLowerCase().includes(filtro);
+        const correspondeResultado =
+            !resultadoFiltro ||
+            resultado.includes(resultadoFiltro) ||
+            (resultadoFiltro === "sucesso" && resultado.includes("permitido")) ||
+            (resultadoFiltro === "negado" && resultado.includes("negado"));
+
+        return correspondeTexto && correspondeResultado;
+    });
+
+    const colunas = ["Data e hora", "Nome", "Tag RFID", "Evento", "Resultado", "Mensagem"];
+    const linhas = filtrados.map(registro => [
+        valor(registro, ["data_hora", "dataHora", "data", "timestamp"]),
+        valor(registro, ["nome", "name"]),
+        valor(registro, ["tag_rfid", "tag_uid", "rfid", "tag"]),
+        valor(registro, ["evento", "event"]),
+        valor(registro, ["resultado", "status"]),
+        valor(registro, ["mensagem", "message"])
+    ]);
+
+    const csv = [colunas, ...linhas]
+        .map(linha => linha.map(campo => `"${String(campo ?? "").replace(/"/g, '""')}"`).join(";"))
+        .join("\r\n");
+
+    const arquivo = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(arquivo);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "logs_acesso.csv";
+    link.click();
+
+    URL.revokeObjectURL(url);
+}
+
+carregarLogs();
+setInterval(carregarLogs, 5000);
+</script>
+
+</body>
+</html>

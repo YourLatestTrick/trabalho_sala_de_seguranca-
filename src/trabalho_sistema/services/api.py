@@ -1,9 +1,7 @@
-
 from pathlib import Path
 from functools import wraps
 import sqlite3
 import csv
-import os
 
 from flask import (
     Flask,
@@ -26,7 +24,6 @@ app.json.ensure_ascii = False
 
 USUARIO_ADMIN = "admin"
 SENHA_ADMIN = "admin"
-
 
 app.secret_key = "chave-de-desenvolvimento-trocar-depois"
 
@@ -89,20 +86,16 @@ def verificar_sessao():
         "autenticado": False
     }), 200
 
+
 @app.route("/api/logs", methods=["GET"])
 @login_obrigatorio
 def consultar_logs():
-    caminho_csv = Path(
-        os.environ.get(
-            "LOGS_CSV_PATH",
-            Path(__file__).resolve().parents[3] / "logs_acesso.csv"
-        )
-    )
+    caminho_csv = Path(__file__).resolve().parents[1] / "logs_acesso.csv"
 
     if not caminho_csv.is_file():
         return jsonify({
             "erro": "Arquivo de logs não encontrado.",
-            "arquivo": caminho_csv.name
+            "caminho": str(caminho_csv)
         }), 404
 
     try:
@@ -124,7 +117,8 @@ def consultar_logs():
 
             if not colunas.issubset(set(leitor.fieldnames or [])):
                 return jsonify({
-                    "erro": "O CSV não possui as colunas esperadas."
+                    "erro": "O CSV não possui as colunas esperadas.",
+                    "colunas_encontradas": leitor.fieldnames or []
                 }), 400
 
             logs = list(leitor)
@@ -133,7 +127,7 @@ def consultar_logs():
 
         resposta = jsonify(logs)
         resposta.headers["Cache-Control"] = "no-store"
-        return resposta
+        return resposta, 200
 
     except (OSError, UnicodeError, csv.Error):
         return jsonify({
