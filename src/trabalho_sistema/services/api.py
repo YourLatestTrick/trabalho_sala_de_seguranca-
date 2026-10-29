@@ -2,6 +2,8 @@
 from pathlib import Path
 from functools import wraps
 import sqlite3
+import csv
+import os
 
 from flask import (
     Flask,
@@ -22,12 +24,10 @@ from trabalho_sistema.database.database import (
 app = Flask(__name__)
 app.json.ensure_ascii = False
 
-# Credenciais fixas para a demonstração
 USUARIO_ADMIN = "admin"
 SENHA_ADMIN = "admin"
 
-# Chave usada para assinar a sessão do navegador.
-# Em produção, use uma chave secreta forte em variável de ambiente.
+
 app.secret_key = "chave-de-desenvolvimento-trocar-depois"
 
 
@@ -50,7 +50,6 @@ def index():
     return send_from_directory(pasta_web, "index.html")
 
 
-# LOGIN
 @app.route("/api/login", methods=["POST"])
 def login():
     dados = request.get_json(silent=True)
@@ -78,7 +77,6 @@ def login():
     }), 200
 
 
-# VERIFICA SE JÁ EXISTE UMA SESSÃO AUTENTICADA
 @app.route("/api/session", methods=["GET"])
 def verificar_sessao():
     if session.get("autenticado"):
@@ -91,8 +89,58 @@ def verificar_sessao():
         "autenticado": False
     }), 200
 
+@app.route("/api/logs", methods=["GET"])
+@login_obrigatorio
+def consultar_logs():
+    caminho_csv = Path(
+        os.environ.get(
+            "LOGS_CSV_PATH",
+            Path(__file__).resolve().parents[3] / "logs_acesso.csv"
+        )
+    )
 
-# LOGOUT
+    if not caminho_csv.is_file():
+        return jsonify({
+            "erro": "Arquivo de logs não encontrado.",
+            "arquivo": caminho_csv.name
+        }), 404
+
+    try:
+        with caminho_csv.open(
+            "r",
+            encoding="utf-8-sig",
+            newline=""
+        ) as arquivo:
+            leitor = csv.DictReader(arquivo)
+
+            colunas = {
+                "data_hora",
+                "tag_uid",
+                "nome",
+                "evento",
+                "resultado",
+                "mensagem"
+            }
+
+            if not colunas.issubset(set(leitor.fieldnames or [])):
+                return jsonify({
+                    "erro": "O CSV não possui as colunas esperadas."
+                }), 400
+
+            logs = list(leitor)
+
+        logs.reverse()
+
+        resposta = jsonify(logs)
+        resposta.headers["Cache-Control"] = "no-store"
+        return resposta
+
+    except (OSError, UnicodeError, csv.Error):
+        return jsonify({
+            "erro": "Não foi possível ler o arquivo de logs."
+        }), 500
+
+
 @app.route("/api/logout", methods=["POST"])
 def logout():
     session.clear()
@@ -102,7 +150,6 @@ def logout():
     }), 200
 
 
-# LISTAR COLABORADORES
 @app.route("/api/users", methods=["GET"])
 @login_obrigatorio
 def list_user():
@@ -123,7 +170,6 @@ def list_user():
     return jsonify(resultado)
 
 
-# CADASTRAR COLABORADOR
 @app.route("/api/users", methods=["POST"])
 @login_obrigatorio
 def create_user():
@@ -171,7 +217,6 @@ def create_user():
     }), 409
 
 
-# CONSULTAR COLABORADOR PELO RFID
 @app.route("/api/users/rfid/<rfid>", methods=["GET"])
 @login_obrigatorio
 def get_user_by_rfid(rfid):
@@ -191,7 +236,6 @@ def get_user_by_rfid(rfid):
     })
 
 
-# EXCLUIR COLABORADOR
 @app.route("/api/users/rfid/<rfid>", methods=["DELETE"])
 @login_obrigatorio
 def remove_user(rfid):
@@ -209,7 +253,6 @@ def remove_user(rfid):
     })
 
 
-# EDITAR COLABORADOR
 @app.route("/api/users/<id>", methods=["PUT"])
 @login_obrigatorio
 def update_user(id):
@@ -249,7 +292,6 @@ def update_user(id):
             "erro": "O status deve ser 'ativo' ou 'inativo'."
         }), 400
 
-    # Localiza o banco usando o mesmo caminho relativo ao projeto
     connection = sqlite3.connect("acess_control.db")
 
     try:
