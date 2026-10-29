@@ -6,5 +6,4 @@ Trabalho Sala de Acesso
 
 O projeto é criar um sistema de segurança para um ambiente restrito. O sistema deve permitir que os usuário autenticado seja capaz de modificar o acesso, deletar outro usuários do banco, adicionar um usuário, listar e pesquisar.
 Na raspi usando rfid, o backend controla quem pode ou não entrar, gerando logs e fazendo uma cópia via ssh do banco de dados
-Os logs serão exibidos em outro frontend para a empresa de segurança
 
