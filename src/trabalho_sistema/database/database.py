@@ -70,54 +70,54 @@ def initialize_database():
 
     connection.close()
 
-def auth_by_rfid(rfid):
-  try:
-    connection = sqlite3.connect("acess_control.db")
-    cursor = connection.cursor()
+# def auth_by_rfid(rfid):
+#   try:
+#     connection = sqlite3.connect("acess_control.db")
+#     cursor = connection.cursor()
 
-    cursor.execute(
-        """
-            SELECT nome, cargo, acesso_sala, status 
-            FROM pessoas 
-            WHERE rfid = ?
-        """,
-        (rfid,),
-    )
+#     cursor.execute(
+#         """
+#             SELECT nome, cargo, acesso_sala, status 
+#             FROM pessoas 
+#             WHERE rfid = ?
+#         """,
+#         (rfid,),
+#     )
 
-    user = cursor.fetchone()
-    connection.close()
+#     user = cursor.fetchone()
+#     connection.close()
 
-    if not user:
-      return {
-          "autorizado": False,
-          "mensagem": "Código RFID inválido ou não cadastrado.",
-      }
+#     if not user:
+#       return {
+#           "autorizado": False,
+#           "mensagem": "Código RFID inválido ou não cadastrado.",
+#       }
 
-    nome, cargo, acesso_sala, status = user
+#     nome, cargo, acesso_sala, status = user
 
-    if status != "ativo":
-      return {
-          "autorizado": False,
-          "mensagem": f"Acesso negado: {nome}, seu cadastro está inativo.",
-      }
+#     if status != "ativo":
+#       return {
+#           "autorizado": False,
+#           "mensagem": f"Acesso negado: {nome}, seu cadastro está inativo.",
+#       }
 
-    if acesso_sala != "sim":
-      return {
-          "autorizado": False,
-          "mensagem": (
-              f"Acesso negado: {nome}, você não tem permissão para entrar na"
-              " sala."
-          ),
-      }
+#     if acesso_sala != "sim":
+#       return {
+#           "autorizado": False,
+#           "mensagem": (
+#               f"Acesso negado: {nome}, você não tem permissão para entrar na"
+#               " sala."
+#           ),
+#       }
 
-    return {
-        "autorizado": True,
-        "mensagem": f"Acesso liberado! Bem-vindo(a), {nome} ({cargo}).",
-    }
+#     return {
+#         "autorizado": True,
+#         "mensagem": f"Acesso liberado! Bem-vindo(a), {nome} ({cargo}).",
+#     }
 
-  except Exception as e:
-    print(f"Erro ao autenticar: {e}")
-    return {"autorizado": False, "mensagem": "Erro interno no sistema."}
+#   except Exception as e:
+#     print(f"Erro ao autenticar: {e}")
+#     return {"autorizado": False, "mensagem": "Erro interno no sistema."}
 
 def add_user(nome, rfid, cargo, acesso_sala, status="ativo"):
   try:
