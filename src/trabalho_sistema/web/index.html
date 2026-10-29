@@ -1,0 +1,1005 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Interno - Controle de Acesso</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #7b9ebd;
+            color: #222;
+            font-family: Tahoma, Verdana, Arial, sans-serif;
+            font-size: 12px;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        a {
+            color: #003399;
+            text-decoration: underline;
+        }
+
+        a:visited {
+            color: #663399;
+        }
+
+        .page {
+            width: 940px;
+            max-width: calc(100% - 24px);
+            margin: 18px auto;
+            background: #fff;
+            border: 1px solid #294e70;
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, .22);
+        }
+
+        .topbar {
+            min-height: 58px;
+            padding: 10px 14px;
+            color: #fff;
+            background: linear-gradient(to bottom, #4f91d4 0%, #2366ae 45%, #174a91 100%);
+            border-bottom: 1px solid #10366d;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            width: 38px;
+            height: 38px;
+            border: 1px solid #dcecff;
+            background: #e7f1fb;
+            color: #174a91;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 20px;
+            box-shadow: inset 1px 1px #fff;
+        }
+
+        .topbar h1 {
+            margin: 0 0 4px;
+            font-size: 20px;
+        }
+
+        .topbar p {
+            margin: 0;
+            font-size: 11px;
+        }
+
+        .menubar {
+            padding: 7px 12px;
+            background: #ece9d8;
+            border-bottom: 1px solid #b5b2a5;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .menubar a {
+            margin-right: 10px;
+        }
+
+        .menubar button {
+            margin: 0 0 0 auto;
+        }
+
+        .content {
+            padding: 16px;
+            min-height: 360px;
+        }
+
+        .breadcrumb {
+            margin: 0 0 14px;
+            color: #555;
+            font-size: 11px;
+        }
+
+        h2 {
+            margin: 0 0 5px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #9eb6cf;
+            color: #174a91;
+            font-size: 17px;
+        }
+
+        h3 {
+            margin: 0 0 10px;
+            color: #174a91;
+            font-size: 14px;
+        }
+
+        .intro {
+            margin: 8px 0 16px;
+            line-height: 1.5;
+        }
+
+        .panel {
+            padding: 12px;
+            background: #f0f0e8;
+            border: 1px solid #c6c6b9;
+            margin: 12px 0;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(180px, 1fr));
+            gap: 10px 14px;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        select {
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 100%;
+            padding: 5px;
+            border: 1px solid #7f9db9;
+            font-family: Tahoma, Verdana, Arial, sans-serif;
+            font-size: 12px;
+            background: #fff;
+        }
+
+        input:focus,
+        select:focus {
+            outline: 1px solid #2366ae;
+        }
+
+        button {
+            margin: 3px 3px 0 0;
+            padding: 5px 12px;
+            border: 1px solid #7f9db9;
+            border-radius: 2px;
+            background: linear-gradient(to bottom, #fff 0%, #e5e3d8 100%);
+            color: #222;
+            font-family: Tahoma, Verdana, Arial, sans-serif;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        button:active {
+            background: #d7d4c7;
+            border-color: #555;
+        }
+
+        button:disabled {
+            color: #888;
+            cursor: wait;
+        }
+
+        .danger {
+            color: #8b0000;
+        }
+
+        .result-line {
+            margin: 8px 0;
+            color: #555;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #8b9eaf;
+            background: #fff;
+        }
+
+        th {
+            padding: 7px 6px;
+            text-align: left;
+            color: #fff;
+            background: linear-gradient(to bottom, #6699cc 0%, #376fa8 100%);
+            border: 1px solid #8b9eaf;
+        }
+
+        td {
+            padding: 7px 6px;
+            border: 1px solid #c6c6c6;
+            vertical-align: top;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f0f5fa;
+        }
+
+        tbody tr:hover {
+            background: #fff8d8;
+        }
+
+        .status {
+            font-weight: bold;
+        }
+
+        .ativo {
+            color: #176b22;
+        }
+
+        .inativo,
+        .sem-acesso {
+            color: #a00000;
+        }
+
+        .mensagem {
+            margin: 12px 0;
+            padding: 9px;
+            border: 1px solid #c6c6b9;
+            background: #ffffe1;
+        }
+
+        .mensagem.erro {
+            border-color: #c88;
+            background: #fff0f0;
+            color: #800;
+        }
+
+        .resultado-busca {
+            margin-top: 10px;
+            padding: 10px;
+            background: #fff;
+            border: 1px solid #aab9c8;
+        }
+
+        .resultado-busca p {
+            margin: 5px 0;
+        }
+
+        .footer {
+            padding: 9px 14px;
+            color: #555;
+            background: #ece9d8;
+            border-top: 1px solid #b5b2a5;
+            font-size: 10px;
+            line-height: 1.6;
+        }
+
+        .login-page {
+            max-width: 520px;
+        }
+
+        .login-page .content {
+            min-height: auto;
+        }
+
+        .login-page .panel {
+            padding: 18px;
+        }
+
+        .login-page .field {
+            margin-bottom: 8px;
+        }
+
+        .login-page input {
+            margin-top: 3px;
+        }
+
+        .login-page .btn-entrar {
+            min-width: 100px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 650px) {
+            .page {
+                max-width: calc(100% - 12px);
+                margin: 6px auto;
+            }
+
+            .content {
+                padding: 10px;
+            }
+
+            .table-wrap {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 760px;
+            }
+
+            .topbar h1 {
+                font-size: 16px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .login-page .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page login-page" id="login-page">
+        <header class="topbar">
+            <div class="logo">SA</div>
+            <div>
+                <h1>Acesso ao Sistema</h1>
+                <p>Intranet corporativa | Departamento de Segurança</p>
+            </div>
+        </header>
+
+        <main class="content">
+            <p class="breadcrumb">Início &gt; Autenticação</p>
+
+            <h2>Identificação do administrador</h2>
+
+            <p class="intro">
+                Informe seu usuário e sua senha para acessar o sistema de controle de acesso.
+            </p>
+
+            <div id="login-mensagem" class="mensagem erro" role="alert" hidden></div>
+
+            <section class="panel">
+                <form id="form-login">
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="login-usuario">Usuário:</label>
+                            <input
+                                id="login-usuario"
+                                name="usuario"
+                                type="text"
+                                autocomplete="username"
+                                required
+                            >
+                        </div>
+
+                        <div class="field">
+                            <label for="login-senha">Senha:</label>
+                            <input
+                                id="login-senha"
+                                name="senha"
+                                type="password"
+                                autocomplete="current-password"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <p>
+                        <button id="btn-login" class="btn-entrar" type="submit">
+                            Entrar
+                        </button>
+                    </p>
+                </form>
+            </section>
+        </main>
+
+        <footer class="footer">
+            Sistema interno de segurança — Versão 1.0<br>
+            Acesso restrito a pessoal autorizado.
+        </footer>
+    </div>
+
+    <div class="page" id="app-page" hidden>
+        <header class="topbar">
+            <div class="logo">SA</div>
+            <div>
+                <h1>Sistema de Controle de Acesso</h1>
+                <p>Intranet corporativa | Departamento de Segurança</p>
+            </div>
+        </header>
+
+        <nav class="menubar" aria-label="Menu principal">
+            <a href="/">Início</a>
+            <a href="#cadastro">Cadastrar colaborador</a>
+            <a href="#busca-rfid">Consultar RFID</a>
+            <a href="#colaboradores">Colaboradores</a>
+            <button id="btn-logout" type="button">Sair</button>
+        </nav>
+
+        <main class="content">
+            <p class="breadcrumb">
+                Início &gt; Segurança &gt; Administração de colaboradores
+            </p>
+
+            <h2>Administração de colaboradores</h2>
+
+            <p class="intro">
+                Consulte os cadastros, registre novos colaboradores e administre
+                as permissões de acesso à sala de segurança.
+            </p>
+
+            <div id="mensagem" class="mensagem" role="status" hidden></div>
+
+            <section class="panel" id="cadastro">
+                <h3>Novo colaborador</h3>
+
+                <form id="form-cadastro">
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="nome">Nome completo:</label>
+                            <input id="nome" name="nome" type="text" required>
+                        </div>
+
+                        <div class="field">
+                            <label for="rfid">Código RFID:</label>
+                            <input id="rfid" name="rfid" type="text" required>
+                        </div>
+
+                        <div class="field">
+                            <label for="cargo">Cargo:</label>
+                            <input id="cargo" name="cargo" type="text" required>
+                        </div>
+
+                        <div class="field">
+                            <label for="acesso_sala">Permissão de acesso à sala:</label>
+                            <select id="acesso_sala" name="acesso_sala" required>
+                                <option value="sim">Sim</option>
+                                <option value="nao" selected>Não</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="status">Situação do cadastro:</label>
+                            <select id="status" name="status">
+                                <option value="ativo" selected>Ativo</option>
+                                <option value="inativo">Inativo</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <p>
+                        <button id="btn-cadastrar" type="submit">Cadastrar</button>
+                        <button type="reset">Limpar campos</button>
+                    </p>
+                </form>
+            </section>
+
+            <section class="panel" id="busca-rfid">
+                <h3>Consultar cartão RFID</h3>
+
+                <form id="form-busca-rfid">
+                    <label for="rfid-consulta">Informe o código RFID:</label>
+                    <input id="rfid-consulta" type="text" required>
+                    <button type="submit">Consultar</button>
+                </form>
+
+                <div id="resultado-rfid" class="resultado-busca" hidden></div>
+            </section>
+
+            <section id="colaboradores">
+                <div class="panel" id="painel-edicao" hidden>
+                    <h3>Editar colaborador</h3>
+
+                    <form id="form-edicao">
+                        <div class="form-grid">
+                            <div class="field">
+                                <label for="edicao-nome">Nome completo:</label>
+                                <input id="edicao-nome" name="nome" type="text" required>
+                            </div>
+
+                            <div class="field">
+                                <label for="edicao-rfid">Código RFID:</label>
+                                <input id="edicao-rfid" name="rfid" type="text" required>
+                            </div>
+
+                            <div class="field">
+                                <label for="edicao-cargo">Cargo:</label>
+                                <input id="edicao-cargo" name="cargo" type="text" required>
+                            </div>
+
+                            <div class="field">
+                                <label for="edicao-status">Situação do cadastro:</label>
+                                <select id="edicao-status" name="status" required>
+                                    <option value="ativo">Ativo</option>
+                                    <option value="inativo">Inativo</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <p>
+                            <button id="btn-salvar-edicao" type="submit">
+                                Salvar alterações
+                            </button>
+                            <button id="btn-cancelar-edicao" type="button">
+                                Cancelar
+                            </button>
+                        </p>
+
+                        <p class="result-line">
+                            A permissão de acesso à sala não pode ser alterada por este formulário.
+                        </p>
+                    </form>
+                </div>
+
+                <h3>Colaboradores cadastrados</h3>
+
+                <div class="panel">
+                    <label for="pesquisa">Filtrar tabela:</label>
+                    <input
+                        id="pesquisa"
+                        type="text"
+                        placeholder="Nome, cargo ou RFID"
+                    >
+                    <button id="buscar" type="button">Buscar</button>
+                    <button id="limpar" type="button">Mostrar todos</button>
+                </div>
+
+                <p class="result-line" id="contador">
+                    Carregando colaboradores...
+                </p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>RFID</th>
+                                <th>Cargo</th>
+                                <th>Acesso à sala</th>
+                                <th>Status</th>
+                                <th>Operação</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="lista-pessoas">
+                            <tr>
+                                <td colspan="6">Carregando dados...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            Sistema interno de segurança — Versão 1.0<br>
+            Acesso restrito a pessoal autorizado.
+        </footer>
+    </div>
+
+    <script>
+        const paginaLogin = document.getElementById("login-page");
+        const paginaApp = document.getElementById("app-page");
+        const formularioLogin = document.getElementById("form-login");
+        const mensagemLogin = document.getElementById("login-mensagem");
+        const botaoLogin = document.getElementById("btn-login");
+
+        const corpoTabela = document.getElementById("lista-pessoas");
+        const campoPesquisa = document.getElementById("pesquisa");
+        const contador = document.getElementById("contador");
+        const mensagem = document.getElementById("mensagem");
+        const resultadoRfid = document.getElementById("resultado-rfid");
+
+        const painelEdicao = document.getElementById("painel-edicao");
+        const formularioEdicao = document.getElementById("form-edicao");
+
+        let colaboradores = [];
+        let idEmEdicao = null;
+
+        function mostrarTelaLogin() {
+            paginaLogin.hidden = false;
+            paginaApp.hidden = true;
+        }
+
+        function mostrarTelaSistema() {
+            paginaLogin.hidden = true;
+            paginaApp.hidden = false;
+        }
+
+        function mostrarMensagemLogin(texto) {
+            mensagemLogin.textContent = texto;
+            mensagemLogin.hidden = false;
+        }
+
+        async function iniciarAplicacao() {
+            try {
+                const resposta = await fetch("/api/session");
+                const dados = await resposta.json();
+
+                if (resposta.ok && dados.autenticado) {
+                    mostrarTelaSistema();
+                    await carregarColaboradores();
+                } else {
+                    mostrarTelaLogin();
+                }
+            } catch (erro) {
+                mostrarTelaLogin();
+                mostrarMensagemLogin(
+                    "Não foi possível conectar ao servidor. Verifique se o Flask está em execução."
+                );
+            }
+        }
+
+        formularioLogin.addEventListener("submit", async function (evento) {
+            evento.preventDefault();
+
+            mensagemLogin.hidden = true;
+            botaoLogin.disabled = true;
+            botaoLogin.textContent = "Entrando...";
+
+            const usuario = document.getElementById("login-usuario").value.trim();
+            const senha = document.getElementById("login-senha").value;
+
+            try {
+                const resposta = await fetch("/api/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        usuario: usuario,
+                        senha: senha
+                    })
+                });
+
+                const dados = await resposta.json();
+
+                if (!resposta.ok) {
+                    throw new Error(
+                        dados.erro || "Usuário ou senha incorretos."
+                    );
+                }
+
+                formularioLogin.reset();
+                mostrarTelaSistema();
+                await carregarColaboradores();
+            } catch (erro) {
+                mostrarMensagemLogin(erro.message);
+            } finally {
+                botaoLogin.disabled = false;
+                botaoLogin.textContent = "Entrar";
+            }
+        });
+
+        document.getElementById("btn-logout").addEventListener("click", async function () {
+            try {
+                const resposta = await fetch("/api/logout", {
+                    method: "POST"
+                });
+
+                if (!resposta.ok) {
+                    throw new Error("Não foi possível encerrar a sessão.");
+                }
+
+                colaboradores = [];
+                mostrarTelaLogin();
+                mensagemLogin.hidden = true;
+                document.getElementById("login-usuario").focus();
+            } catch (erro) {
+                mostrarMensagem(
+                    "Erro ao sair do sistema: " + erro.message,
+                    true
+                );
+            }
+        });
+
+        function escaparHTML(valor) {
+            return String(valor ?? "").replace(/[&<>"']/g, function (caractere) {
+                const entidades = {
+                    "&": "&amp;",
+                    "<": "&lt;",
+                    ">": "&gt;",
+                    '"': "&quot;",
+                    "'": "&#39;"
+                };
+
+                return entidades[caractere];
+            });
+        }
+
+        function mostrarMensagem(texto, erro = false) {
+            mensagem.textContent = texto;
+            mensagem.className = erro ? "mensagem erro" : "mensagem";
+            mensagem.hidden = false;
+        }
+
+        function mostrarColaboradores(lista) {
+            corpoTabela.innerHTML = "";
+
+            if (lista.length === 0) {
+                corpoTabela.innerHTML =
+                    '<tr><td colspan="6">Nenhum colaborador encontrado.</td></tr>';
+            } else {
+                lista.forEach(function (pessoa) {
+                    const acesso = String(pessoa.acesso_sala).toLowerCase();
+                    const status = String(pessoa.status).toLowerCase();
+
+                    const classeAcesso =
+                        acesso === "sim" ? "ativo" : "sem-acesso";
+
+                    const classeStatus =
+                        status === "ativo" ? "ativo" : "inativo";
+
+                    const linha = document.createElement("tr");
+
+                    linha.innerHTML = `
+                        <td>${escaparHTML(pessoa.nome)}</td>
+                        <td>${escaparHTML(pessoa.rfid)}</td>
+                        <td>${escaparHTML(pessoa.cargo)}</td>
+                        <td class="status ${classeAcesso}">${escaparHTML(acesso)}</td>
+                        <td class="status ${classeStatus}">${escaparHTML(status)}</td>
+                        <td>
+                            <button type="button" data-acao="editar">Editar</button>
+                            <button type="button" class="danger" data-acao="excluir">Excluir</button>
+                        </td>
+                    `;
+
+                    linha.querySelector('[data-acao="editar"]')
+                        .addEventListener("click", function () {
+                            abrirEdicao(pessoa);
+                        });
+
+                    linha.querySelector('[data-acao="excluir"]')
+                        .addEventListener("click", function () {
+                            excluirColaborador(pessoa.rfid, pessoa.nome);
+                        });
+
+                    corpoTabela.appendChild(linha);
+                });
+            }
+
+            contador.textContent = "Colaboradores encontrados: " + lista.length;
+        }
+
+        function abrirEdicao(pessoa) {
+            idEmEdicao = pessoa.id;
+
+            document.getElementById("edicao-nome").value = pessoa.nome ?? "";
+            document.getElementById("edicao-rfid").value = pessoa.rfid ?? "";
+            document.getElementById("edicao-cargo").value = pessoa.cargo ?? "";
+            document.getElementById("edicao-status").value = pessoa.status ?? "ativo";
+
+            painelEdicao.hidden = false;
+
+            painelEdicao.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+
+            document.getElementById("edicao-nome").focus();
+        }
+
+        document.getElementById("btn-cancelar-edicao")
+            .addEventListener("click", function () {
+                formularioEdicao.reset();
+                painelEdicao.hidden = true;
+                idEmEdicao = null;
+            });
+
+        formularioEdicao.addEventListener("submit", async function (evento) {
+            evento.preventDefault();
+
+            if (!idEmEdicao) {
+                mostrarMensagem("Selecione um colaborador para editar.", true);
+                return;
+            }
+
+            const dados = {
+                nome: document.getElementById("edicao-nome").value.trim(),
+                rfid: document.getElementById("edicao-rfid").value.trim(),
+                cargo: document.getElementById("edicao-cargo").value.trim(),
+                status: document.getElementById("edicao-status").value
+            };
+
+            const botao = document.getElementById("btn-salvar-edicao");
+            botao.disabled = true;
+
+            try {
+                const resposta = await fetch(
+                    "/api/users/" + encodeURIComponent(idEmEdicao),
+                    {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(dados)
+                    }
+                );
+
+                const retorno = await resposta.json();
+
+                if (!resposta.ok) {
+                    throw new Error(
+                        retorno.erro || "Não foi possível atualizar o colaborador."
+                    );
+                }
+
+                mostrarMensagem(
+                    retorno.mensagem || "Colaborador atualizado com sucesso."
+                );
+
+                formularioEdicao.reset();
+                painelEdicao.hidden = true;
+                idEmEdicao = null;
+
+                await carregarColaboradores();
+            } catch (erro) {
+                mostrarMensagem(erro.message, true);
+            } finally {
+                botao.disabled = false;
+            }
+        });
+
+        function pesquisarTabela() {
+            const termo = campoPesquisa.value.trim().toLocaleLowerCase("pt-BR");
+
+            const filtrados = colaboradores.filter(function (pessoa) {
+                return [pessoa.nome, pessoa.rfid, pessoa.cargo].some(function (valor) {
+                    return String(valor ?? "")
+                        .toLocaleLowerCase("pt-BR")
+                        .includes(termo);
+                });
+            });
+
+            mostrarColaboradores(filtrados);
+        }
+
+        async function carregarColaboradores() {
+            try {
+                const resposta = await fetch("/api/users");
+                const dados = await resposta.json();
+
+                if (resposta.status === 401) {
+                    mostrarTelaLogin();
+                    throw new Error("Sua sessão expirou. Entre novamente.");
+                }
+
+                if (!resposta.ok) {
+                    throw new Error(
+                        dados.erro || "Não foi possível consultar a API."
+                    );
+                }
+
+                colaboradores = dados;
+                mostrarColaboradores(colaboradores);
+            } catch (erro) {
+                corpoTabela.innerHTML =
+                    '<tr><td colspan="6">Não foi possível carregar os colaboradores.</td></tr>';
+
+                contador.textContent = "Falha ao carregar dados.";
+
+                mostrarMensagem(
+                    erro.message || "Verifique se o servidor Flask está em execução.",
+                    true
+                );
+            }
+        }
+
+        document.getElementById("form-cadastro")
+            .addEventListener("submit", async function (evento) {
+                evento.preventDefault();
+
+                const dados = {
+                    nome: document.getElementById("nome").value.trim(),
+                    rfid: document.getElementById("rfid").value.trim(),
+                    cargo: document.getElementById("cargo").value.trim(),
+                    acesso_sala: document.getElementById("acesso_sala").value,
+                    status: document.getElementById("status").value
+                };
+
+                const botao = document.getElementById("btn-cadastrar");
+                botao.disabled = true;
+
+                try {
+                    const resposta = await fetch("/api/users", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(dados)
+                    });
+
+                    const retorno = await resposta.json();
+
+                    if (!resposta.ok) {
+                        throw new Error(
+                            retorno.erro || "Não foi possível cadastrar."
+                        );
+                    }
+
+                    mostrarMensagem(
+                        retorno.mensagem || "Colaborador cadastrado com sucesso."
+                    );
+
+                    this.reset();
+                    await carregarColaboradores();
+                } catch (erro) {
+                    mostrarMensagem(erro.message, true);
+                } finally {
+                    botao.disabled = false;
+                }
+            });
+
+        document.getElementById("form-busca-rfid")
+            .addEventListener("submit", async function (evento) {
+                evento.preventDefault();
+
+                const rfid = document.getElementById("rfid-consulta").value.trim();
+
+                try {
+                    const resposta = await fetch(
+                        "/api/users/rfid/" + encodeURIComponent(rfid)
+                    );
+
+                    const pessoa = await resposta.json();
+
+                    if (!resposta.ok) {
+                        throw new Error(
+                            pessoa.erro || "Colaborador não encontrado."
+                        );
+                    }
+
+                    resultadoRfid.innerHTML = `
+                        <strong>Colaborador localizado</strong>
+                        <p><strong>Nome:</strong> ${escaparHTML(pessoa.nome)}</p>
+                        <p><strong>RFID:</strong> ${escaparHTML(pessoa.rfid)}</p>
+                        <p><strong>Cargo:</strong> ${escaparHTML(pessoa.cargo)}</p>
+                        <p><strong>Acesso à sala:</strong> ${escaparHTML(pessoa.acesso_sala)}</p>
+                        <p><strong>Status:</strong> ${escaparHTML(pessoa.status)}</p>
+                    `;
+
+                    resultadoRfid.hidden = false;
+                    mostrarMensagem("Consulta de RFID concluída.");
+                } catch (erro) {
+                    resultadoRfid.textContent = erro.message;
+                    resultadoRfid.hidden = false;
+                    mostrarMensagem(erro.message, true);
+                }
+            });
+
+        async function excluirColaborador(rfid, nome) {
+            if (!confirm("Deseja realmente excluir o cadastro de " + nome + "?")) {
+                return;
+            }
+
+            try {
+                const resposta = await fetch(
+                    "/api/users/rfid/" + encodeURIComponent(rfid),
+                    {
+                        method: "DELETE"
+                    }
+                );
+
+                const retorno = await resposta.json();
+
+                if (!resposta.ok) {
+                    throw new Error(
+                        retorno.erro || "Não foi possível excluir o cadastro."
+                    );
+                }
+
+                mostrarMensagem(
+                    retorno.mensagem || "Colaborador excluído com sucesso."
+                );
+
+                await carregarColaboradores();
+            } catch (erro) {
+                mostrarMensagem(erro.message, true);
+            }
+        }
+
+        document.getElementById("buscar")
+            .addEventListener("click", pesquisarTabela);
+
+        document.getElementById("limpar")
+            .addEventListener("click", function () {
+                campoPesquisa.value = "";
+                mostrarColaboradores(colaboradores);
+            });
+
+        campoPesquisa.addEventListener("keydown", function (evento) {
+            if (evento.key === "Enter") {
+                evento.preventDefault();
+                pesquisarTabela();
+            }
+        });
+
+        iniciarAplicacao();
+    </script>
+</body>
+</html>

@@ -1,0 +1,292 @@
+
+from pathlib import Path
+from functools import wraps
+import sqlite3
+
+from flask import (
+    Flask,
+    jsonify,
+    request,
+    send_from_directory,
+    session,
+)
+
+from trabalho_sistema.database.database import (
+    add_user,
+    delete_user_by_rfid,
+    list_all_users,
+    search_user_by_rfid,
+    update_user_data,
+)
+
+app = Flask(__name__)
+app.json.ensure_ascii = False
+
+# Credenciais fixas para a demonstração
+USUARIO_ADMIN = "admin"
+SENHA_ADMIN = "admin"
+
+# Chave usada para assinar a sessão do navegador.
+# Em produção, use uma chave secreta forte em variável de ambiente.
+app.secret_key = "chave-de-desenvolvimento-trocar-depois"
+
+
+def login_obrigatorio(funcao):
+    @wraps(funcao)
+    def wrapper(*args, **kwargs):
+        if not session.get("autenticado"):
+            return jsonify({
+                "erro": "Faça login para acessar o sistema."
+            }), 401
+
+        return funcao(*args, **kwargs)
+
+    return wrapper
+
+
+@app.route("/")
+def index():
+    pasta_web = Path(__file__).resolve().parents[1] / "web"
+    return send_from_directory(pasta_web, "index.html")
+
+
+# LOGIN
+@app.route("/api/login", methods=["POST"])
+def login():
+    dados = request.get_json(silent=True)
+
+    if not isinstance(dados, dict):
+        return jsonify({
+            "erro": "Envie usuário e senha em formato JSON."
+        }), 400
+
+    usuario = dados.get("usuario")
+    senha = dados.get("senha")
+
+    if usuario != USUARIO_ADMIN or senha != SENHA_ADMIN:
+        return jsonify({
+            "erro": "Usuário ou senha incorretos."
+        }), 401
+
+    session.clear()
+    session["autenticado"] = True
+    session["usuario"] = USUARIO_ADMIN
+
+    return jsonify({
+        "mensagem": "Login realizado com sucesso.",
+        "usuario": USUARIO_ADMIN,
+    }), 200
+
+
+# VERIFICA SE JÁ EXISTE UMA SESSÃO AUTENTICADA
+@app.route("/api/session", methods=["GET"])
+def verificar_sessao():
+    if session.get("autenticado"):
+        return jsonify({
+            "autenticado": True,
+            "usuario": session.get("usuario"),
+        }), 200
+
+    return jsonify({
+        "autenticado": False
+    }), 200
+
+
+# LOGOUT
+@app.route("/api/logout", methods=["POST"])
+def logout():
+    session.clear()
+
+    return jsonify({
+        "mensagem": "Sessão encerrada com sucesso."
+    }), 200
+
+
+# LISTAR COLABORADORES
+@app.route("/api/users", methods=["GET"])
+@login_obrigatorio
+def list_user():
+    pessoas = list_all_users()
+
+    resultado = []
+
+    for user in pessoas:
+        resultado.append({
+            "id": user[0],
+            "nome": user[1],
+            "rfid": user[2],
+            "cargo": user[3],
+            "acesso_sala": user[4],
+            "status": user[5],
+        })
+
+    return jsonify(resultado)
+
+
+# CADASTRAR COLABORADOR
+@app.route("/api/users", methods=["POST"])
+@login_obrigatorio
+def create_user():
+    dados = request.get_json(silent=True)
+
+    if not isinstance(dados, dict):
+        return jsonify({
+            "erro": "Envie os dados em formato JSON."
+        }), 400
+
+    campos = ["nome", "rfid", "cargo", "acesso_sala"]
+
+    if any(
+        not isinstance(dados.get(campo), str)
+        or not dados[campo].strip()
+        for campo in campos
+    ):
+        return jsonify({
+            "erro": "Informe nome, RFID, cargo e acesso à sala."
+        }), 400
+
+    nome = dados["nome"].strip()
+    rfid = dados["rfid"].strip()
+    cargo = dados["cargo"].strip()
+    acesso_sala = dados["acesso_sala"].strip().lower()
+    status = dados.get("status", "ativo")
+
+    if acesso_sala not in ("sim", "nao"):
+        return jsonify({
+            "erro": "O acesso à sala deve ser 'sim' ou 'nao'."
+        }), 400
+
+    if not isinstance(status, str) or status not in ("ativo", "inativo"):
+        return jsonify({
+            "erro": "O status deve ser 'ativo' ou 'inativo'."
+        }), 400
+
+    if add_user(nome, rfid, cargo, acesso_sala, status):
+        return jsonify({
+            "mensagem": "Colaborador cadastrado com sucesso."
+        }), 201
+
+    return jsonify({
+        "erro": "Não foi possível cadastrar. Verifique se o RFID já existe."
+    }), 409
+
+
+# CONSULTAR COLABORADOR PELO RFID
+@app.route("/api/users/rfid/<rfid>", methods=["GET"])
+@login_obrigatorio
+def get_user_by_rfid(rfid):
+    pessoa = search_user_by_rfid(rfid)
+
+    if pessoa is None:
+        return jsonify({
+            "erro": "Colaborador não encontrado."
+        }), 404
+
+    return jsonify({
+        "nome": pessoa[0],
+        "cargo": pessoa[1],
+        "acesso_sala": pessoa[2],
+        "status": pessoa[3],
+        "rfid": rfid,
+    })
+
+
+# EXCLUIR COLABORADOR
+@app.route("/api/users/rfid/<rfid>", methods=["DELETE"])
+@login_obrigatorio
+def remove_user(rfid):
+    pessoa = search_user_by_rfid(rfid)
+
+    if pessoa is None:
+        return jsonify({
+            "erro": "Colaborador não encontrado."
+        }), 404
+
+    delete_user_by_rfid(rfid)
+
+    return jsonify({
+        "mensagem": "Colaborador excluído com sucesso."
+    })
+
+
+# EDITAR COLABORADOR
+@app.route("/api/users/<id>", methods=["PUT"])
+@login_obrigatorio
+def update_user(id):
+    dados = request.get_json(silent=True)
+
+    if not isinstance(dados, dict):
+        return jsonify({
+            "erro": "Envie os dados em formato JSON."
+        }), 400
+
+    campos_permitidos = {
+        "nome": "novo_nome",
+        "cargo": "novo_cargo",
+        "status": "novo_status",
+        "rfid": "novo_rfid",
+    }
+
+    if not any(campo in dados for campo in campos_permitidos):
+        return jsonify({
+            "erro": "Informe pelo menos um campo para atualizar."
+        }), 400
+
+    for campo in campos_permitidos:
+        if campo in dados:
+            if (
+                not isinstance(dados[campo], str)
+                or not dados[campo].strip()
+            ):
+                return jsonify({
+                    "erro": f"O campo '{campo}' não pode ficar vazio."
+                }), 400
+
+            dados[campo] = dados[campo].strip()
+
+    if "status" in dados and dados["status"] not in ("ativo", "inativo"):
+        return jsonify({
+            "erro": "O status deve ser 'ativo' ou 'inativo'."
+        }), 400
+
+    # Localiza o banco usando o mesmo caminho relativo ao projeto
+    connection = sqlite3.connect("acess_control.db")
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute(
+            "SELECT id FROM pessoas WHERE id = ?",
+            (id,),
+        )
+        pessoa = cursor.fetchone()
+    finally:
+        connection.close()
+
+    if pessoa is None:
+        return jsonify({
+            "erro": "Colaborador não encontrado."
+        }), 404
+
+    sucesso = update_user_data(
+        id,
+        novo_nome=dados.get("nome"),
+        novo_cargo=dados.get("cargo"),
+        novo_status=dados.get("status"),
+        novo_rfid=dados.get("rfid"),
+    )
+
+    if not sucesso:
+        return jsonify({
+            "erro": (
+                "Não foi possível atualizar. "
+                "Verifique se o RFID já está cadastrado."
+            )
+        }), 409
+
+    return jsonify({
+        "mensagem": "Colaborador atualizado com sucesso."
+    }), 200
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
