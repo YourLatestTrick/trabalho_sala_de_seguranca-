@@ -6,3 +6,12 @@
 2026-10-28T21:58:44-03:00,632092037175,Miguel Alencar,ACESSO_NEGADO,NEGADO,Pessoa cadastrada sem permissão para a sala.
 2026-10-28T22:02:37-03:00,427389875583,Tag suspeita (teste),TENTATIVA_INVASAO,NEGADO,Tag identificada como suspeita durante teste.
 2026-10-28T22:02:55-03:00,358803442058,Tag suspeita (teste),TENTATIVA_INVASAO,NEGADO,Tag identificada como suspeita durante teste.
+2026-10-28T22:07:39-03:00,701044494601,Carlo Edoardo,ENTRADA,AUTORIZADO,Acesso autorizado para Carlo Edoardo.
+2026-10-28T22:07:46-03:00,701044494601,Carlo Edoardo,SAIDA,AUTORIZADO,Saída registrada para Carlo Edoardo.
+2026-10-28T22:07:50-03:00,962185903074,Pedro Silva,ENTRADA,AUTORIZADO,Acesso autorizado para Pedro Silva.
+2026-10-28T22:08:00-03:00,632092037175,Miguel Alencar,ACESSO_NEGADO,NEGADO,Acesso negado: sem permissão para a sala.
+2026-10-28T22:08:05-03:00,632092037175,Miguel Alencar,ACESSO_NEGADO,NEGADO,Acesso negado: sem permissão para a sala.
+2026-10-28T22:08:13-03:00,358803442058,Tag suspeita (teste),TENTATIVA_INVASAO,NEGADO,Tag identificada como suspeita durante teste.
+2026-10-28T22:08:21-03:00,358803442058,Tag suspeita (teste),TENTATIVA_INVASAO,NEGADO,Tag identificada como suspeita durante teste.
+2026-10-28T22:08:39-03:00,962185903074,Pedro Silva,SAIDA,AUTORIZADO,Saída registrada para Pedro Silva.
+2026-10-28T22:22:29-03:00,962185903074,Pedro Silva,ENTRADA,AUTORIZADO,Acesso autorizado para Pedro Silva.
