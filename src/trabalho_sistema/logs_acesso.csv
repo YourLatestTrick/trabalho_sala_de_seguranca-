@@ -1,0 +1,4 @@
+﻿data_hora,tag_uid,nome,evento,resultado,mensagem
+2026-10-28T21:47:06-03:00,962185903074,Pedro Silva,ENTRADA,AUTORIZADO,Teste de integração
+2026-10-28T21:47:43-03:00,701044494601,Carlo Edoardo,ENTRADA,AUTORIZADO,Acesso autorizado para Carlo Edoardo.
+2026-10-28T21:47:48-03:00,701044494601,Carlo Edoardo,SAIDA,AUTORIZADO,Saída registrada para Carlo Edoardo.
